@@ -24,6 +24,9 @@ func (a *App) Init() {
 	a.initDoctorRoutes()
 	a.initStateRoutes()
 	a.initCountryRoutes()
+	a.initHospitalRoutes()
+	a.initUserRoutes()
+
 }
 
 func (a *App) Run(address string) {

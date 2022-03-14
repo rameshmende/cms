@@ -9,24 +9,26 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (a *App) initStateRoutes() {
-	a.Router.HandleFunc("/api/v1/states", a.GetStates).Methods("GET")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.GetState).Methods("GET")
-	a.Router.HandleFunc("/api/v1/states", a.CreateStates).Methods("POST")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.UpdateStates).Methods("PUT")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.CreateStates).Methods("DELETE")
-}
+func (a *App) initHospitalRoutes() {
+	a.Router.HandleFunc("/api/v1/hospitals", a.GetHospitals).Methods("GET")
+	a.Router.HandleFunc("/api/v1/hospitals/{id}", a.GetHospital).Methods("GET")
+	a.Router.HandleFunc("/api/v1/hospitals", a.CreateHospitals).Methods("POST")
+	a.Router.HandleFunc("/api/v1/hospitals/{id}", a.UpdateHospitals).Methods("PUT")
+	a.Router.HandleFunc("/api/v1/hospitals/{id}", a.DeleteHospitals).Methods("DELETE")
 
-func (a *App) GetStates(res http.ResponseWriter, req *http.Request) {
+}
+func (a *App) GetHospitals(res http.ResponseWriter, req *http.Request) {
+
 	var response model.Response
-	states := model.GetAllStates(a.DB)
+	hospitals := model.GetAllHospitals(a.DB)
 	res.Header().Set("Content-Type", "application/json")
 	response.Status = 200
 	response.Error = false
-	response.Data = states
+	response.Data = hospitals
 	json.NewEncoder(res).Encode(response)
+
 }
-func (a *App) GetState(res http.ResponseWriter, req *http.Request) {
+func (a *App) GetHospital(res http.ResponseWriter, req *http.Request) {
 	var response model.Response
 	vars := mux.Vars(req)
 	id, _ := vars["id"]
@@ -36,9 +38,9 @@ func (a *App) GetState(res http.ResponseWriter, req *http.Request) {
 		response.Error = true
 		response.Data = err.Error()
 	} else {
-		state := model.Country{ID: idp}
-		err = state.Get(a.DB)
-		response.Data = state
+		hospital := model.Hospital{ID: idp}
+		err = hospital.Get(a.DB)
+		response.Data = hospital
 		response.Error = false
 		if err != nil {
 			response.Error = true
@@ -46,37 +48,35 @@ func (a *App) GetState(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 	json.NewEncoder(res).Encode(response)
+
 }
-func (a *App) CreateStates(res http.ResponseWriter, req *http.Request) {
+func (a *App) CreateHospitals(res http.ResponseWriter, req *http.Request) {
+	var hospital model.Hospital
+	err := json.NewDecoder(req.Body).Decode(&hospital)
 	var response model.Response
-	var state model.State
-	res.Header().Set("Content-Type", "Application/json")
-	err := json.NewDecoder(req.Body).Decode(&state)
+	res.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		response.Status = http.StatusUnprocessableEntity
 		response.Error = true
 		response.Data = err.Error()
 		json.NewEncoder(res).Encode(response)
 	}
-
-	err = state.Create(a.DB)
+	err = hospital.Create(a.DB)
 	if err != nil {
-		response.Status = http.StatusInternalServerError
 		response.Error = true
 		response.Data = err.Error()
+
 	} else {
-		response.Status = http.StatusOK
 		response.Error = false
-		response.Data = state
+		response.Data = hospital
 	}
 	json.NewEncoder(res).Encode(response)
 
 }
-func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
-    var response model.Response
+func (a *App) UpdateHospitals(res http.ResponseWriter, req *http.Request) {
+	var response model.Response
 	vars := mux.Vars(req)
 	id := vars["id"]
-	stId, err := strconv.Atoi(id)
+	hosId, err := strconv.Atoi(id)
 	var updatedFields map[string]interface{}
 	res.Header().Set("Content-Type", "Application/json")
 	err = json.NewDecoder(req.Body).Decode(&updatedFields)
@@ -87,8 +87,8 @@ func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(res).Encode(response)
 	}
 
-	state := model.State{ID: stId}
-	err = state.Update(a.DB, updatedFields)
+	hospital := model.Hospital{ID: hosId}
+	err = hospital.Update(a.DB, updatedFields)
 	if err != nil {
 		response.Status = http.StatusInternalServerError
 		response.Error = true
@@ -96,15 +96,15 @@ func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
 	} else {
 		response.Status = http.StatusOK
 		response.Error = true
-		response.Data = state
+		response.Data = hospital
 	}
 	json.NewEncoder(res).Encode(response)
 }
-func (a *App) DeleteStates(res http.ResponseWriter, req *http.Request) {
+func (a *App) DeleteHospitals(res http.ResponseWriter, req *http.Request) {
 	var response model.Response
 	vars := mux.Vars(req)
 	id := vars["id"]
-	stId, err := strconv.Atoi(id)
+	hosId, err := strconv.Atoi(id)
 	res.Header().Set("Content-Type", "Application/json")
 	if err != nil {
 		response.Status = http.StatusUnprocessableEntity
@@ -113,8 +113,8 @@ func (a *App) DeleteStates(res http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(res).Encode(response)
 	}
 
-	state := model.State{ID: stId}
-	err = state.Delete(a.DB)
+	hospital := model.Hospital{ID: hosId}
+	err = hospital.Delete(a.DB)
 	if err != nil {
 		response.Status = http.StatusInternalServerError
 		response.Error = true
@@ -125,4 +125,5 @@ func (a *App) DeleteStates(res http.ResponseWriter, req *http.Request) {
 		response.Data = "Data delete successfully"
 	}
 	json.NewEncoder(res).Encode(response)
+
 }
