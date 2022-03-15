@@ -9,7 +9,7 @@ import (
 )
 
 func GetDB() (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/cms?charset=utf8mb4&parseTime=True&loc=Local", "root", "jaya")
+	dsn := fmt.Sprintf("%s:%s@tcp(localhost:3306)/cms?charset=utf8mb4&parseTime=True&loc=Local", "root", "root")
 	sqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		return nil, err

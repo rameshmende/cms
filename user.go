@@ -5,40 +5,40 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
+ "github.com/gorilla/mux"
+	
 )
 
-func (a *App) initStateRoutes() {
-	a.Router.HandleFunc("/api/v1/states", a.GetStates).Methods("GET")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.GetState).Methods("GET")
-	a.Router.HandleFunc("/api/v1/states", a.CreateStates).Methods("POST")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.UpdateStates).Methods("PUT")
-	a.Router.HandleFunc("/api/v1/states/{id}", a.CreateStates).Methods("DELETE")
-}
+func (a *App) initUserRoutes() {
+	a.Router.HandleFunc("/api/v1/users", a.GetUsers).Methods("GET")
+	a.Router.HandleFunc("/api/v1/users/{id}", a.GetUser).Methods("GET")
+	a.Router.HandleFunc("/api/v1/users", a.CreateUsers).Methods("POST")
+	a.Router.HandleFunc("/api/v1/users/{id}", a.UpdateUsers).Methods("PUT")
+	a.Router.HandleFunc("/api/v1/users/{id}", a.DeleteUsers).Methods("DELETE")
 
-func (a *App) GetStates(res http.ResponseWriter, req *http.Request) {
+}
+func (a *App) GetUsers(res http.ResponseWriter, req *http.Request) {
 	var response model.Response
-	states := model.GetAllStates(a.DB)
+	users := model.GetAllUsers(a.DB)
 	res.Header().Set("Content-Type", "application/json")
 	response.Status = 200
 	response.Error = false
-	response.Data = states
+	response.Data = users
 	json.NewEncoder(res).Encode(response)
 }
-func (a *App) GetState(res http.ResponseWriter, req *http.Request) {
-	var response model.Response
+func (a *App) GetUser(res http.ResponseWriter, req *http.Request) {
+    var response model.Response
 	vars := mux.Vars(req)
-	id, _ := vars["id"]
-	idp, err := strconv.Atoi(id)
+	id,_ :=vars["id"]
+	idp,err := strconv.Atoi(id)
 	res.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		response.Error = true
 		response.Data = err.Error()
 	} else {
-		state := model.Country{ID: idp}
-		err = state.Get(a.DB)
-		response.Data = state
+		user := model.User{ID: idp}
+		err = user.Get(a.DB)
+		response.Data = user
 		response.Error = false
 		if err != nil {
 			response.Error = true
@@ -46,37 +46,34 @@ func (a *App) GetState(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 	json.NewEncoder(res).Encode(response)
+
 }
-func (a *App) CreateStates(res http.ResponseWriter, req *http.Request) {
+func (a *App) CreateUsers(res http.ResponseWriter, req *http.Request) {
+	var user model.User
+	err := json.NewDecoder(req.Body).Decode(&user)
 	var response model.Response
-	var state model.State
-	res.Header().Set("Content-Type", "Application/json")
-	err := json.NewDecoder(req.Body).Decode(&state)
+	res.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		response.Status = http.StatusUnprocessableEntity
 		response.Error = true
 		response.Data = err.Error()
 		json.NewEncoder(res).Encode(response)
 	}
-
-	err = state.Create(a.DB)
+	err = user.Create(a.DB)
 	if err != nil {
-		response.Status = http.StatusInternalServerError
 		response.Error = true
 		response.Data = err.Error()
+
 	} else {
-		response.Status = http.StatusOK
 		response.Error = false
-		response.Data = state
+		response.Data = user
 	}
 	json.NewEncoder(res).Encode(response)
-
 }
-func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
-    var response model.Response
+func (a *App) UpdateUsers(res http.ResponseWriter, req *http.Request) {
+	var response model.Response
 	vars := mux.Vars(req)
 	id := vars["id"]
-	stId, err := strconv.Atoi(id)
+	userId, err := strconv.Atoi(id)
 	var updatedFields map[string]interface{}
 	res.Header().Set("Content-Type", "Application/json")
 	err = json.NewDecoder(req.Body).Decode(&updatedFields)
@@ -87,8 +84,8 @@ func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(res).Encode(response)
 	}
 
-	state := model.State{ID: stId}
-	err = state.Update(a.DB, updatedFields)
+	user := model.User{ID: userId}
+	err = user.Update(a.DB, updatedFields)
 	if err != nil {
 		response.Status = http.StatusInternalServerError
 		response.Error = true
@@ -96,15 +93,15 @@ func (a *App) UpdateStates(res http.ResponseWriter, req *http.Request) {
 	} else {
 		response.Status = http.StatusOK
 		response.Error = true
-		response.Data = state
+		response.Data = user
 	}
 	json.NewEncoder(res).Encode(response)
 }
-func (a *App) DeleteStates(res http.ResponseWriter, req *http.Request) {
+func (a *App) DeleteUsers(res http.ResponseWriter, req *http.Request) {
 	var response model.Response
 	vars := mux.Vars(req)
 	id := vars["id"]
-	stId, err := strconv.Atoi(id)
+	userId, err := strconv.Atoi(id)
 	res.Header().Set("Content-Type", "Application/json")
 	if err != nil {
 		response.Status = http.StatusUnprocessableEntity
@@ -113,8 +110,8 @@ func (a *App) DeleteStates(res http.ResponseWriter, req *http.Request) {
 		json.NewEncoder(res).Encode(response)
 	}
 
-	state := model.State{ID: stId}
-	err = state.Delete(a.DB)
+	user := model.User{ID: userId}
+	err = user.Delete(a.DB)
 	if err != nil {
 		response.Status = http.StatusInternalServerError
 		response.Error = true
