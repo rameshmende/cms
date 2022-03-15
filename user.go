@@ -70,8 +70,56 @@ func (a *App) CreateUsers(res http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(res).Encode(response)
 }
 func (a *App) UpdateUsers(res http.ResponseWriter, req *http.Request) {
-	
+	var response model.Response
+	vars := mux.Vars(req)
+	id := vars["id"]
+	userId, err := strconv.Atoi(id)
+	var updatedFields map[string]interface{}
+	res.Header().Set("Content-Type", "Application/json")
+	err = json.NewDecoder(req.Body).Decode(&updatedFields)
+	if err != nil {
+		response.Status = http.StatusUnprocessableEntity
+		response.Error = true
+		response.Data = err.Error()
+		json.NewEncoder(res).Encode(response)
+	}
+
+	user := model.User{ID: userId}
+	err = user.Update(a.DB, updatedFields)
+	if err != nil {
+		response.Status = http.StatusInternalServerError
+		response.Error = true
+		response.Data = err.Error()
+	} else {
+		response.Status = http.StatusOK
+		response.Error = true
+		response.Data = user
+	}
+	json.NewEncoder(res).Encode(response)
 }
 func (a *App) DeleteUsers(res http.ResponseWriter, req *http.Request) {
-	
+	var response model.Response
+	vars := mux.Vars(req)
+	id := vars["id"]
+	userId, err := strconv.Atoi(id)
+	res.Header().Set("Content-Type", "Application/json")
+	if err != nil {
+		response.Status = http.StatusUnprocessableEntity
+		response.Error = true
+		response.Data = err.Error()
+		json.NewEncoder(res).Encode(response)
+	}
+
+	user := model.User{ID: userId}
+	err = user.Delete(a.DB)
+	if err != nil {
+		response.Status = http.StatusInternalServerError
+		response.Error = true
+		response.Data = err.Error()
+	} else {
+		response.Status = http.StatusOK
+		response.Error = true
+		response.Data = "Data delete successfully"
+	}
+	json.NewEncoder(res).Encode(response)
 }
